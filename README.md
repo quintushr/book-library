@@ -75,6 +75,38 @@ npm run preview
 4. Click "Add to Library" to save the book to your personal collection
 5. View all your saved books in the "My Library" section
 
+## 🚀 Deployment
+
+### Deploying with Nixpacks
+
+This project is configured to be deployed using Nixpacks, which automatically creates optimized Docker images.
+
+1. Make sure you have Nixpacks installed:
+   ```bash
+   curl -sSL https://nixpacks.com/install.sh | bash
+   ```
+
+2. Build your application with Nixpacks:
+   ```bash
+   nixpacks build . --name book-scanner
+   ```
+
+3. Run the built image:
+   ```bash
+   docker run -p 3000:3000 book-scanner
+   ```
+
+### Environment Variables for Production
+
+Make sure to set the following environment variables in your production environment:
+
+```
+NODE_ENV=production
+NUXT_PUBLIC_APPWRITE_PROJECT_ID=your-project-id
+NUXT_PUBLIC_APPWRITE_DATABASE_ID=your-database-id
+NUXT_PUBLIC_APPWRITE_COLLECTION_ID=your-collection-id
+```
+
 ## 📝 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
