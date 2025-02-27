@@ -185,6 +185,7 @@ const library = ref([])
 
 async function fetchLibrary() {
   try {
+    console.log("ici")
     loadingLibrary.value = true
     const response = await $appwrite.databases.listDocuments(
       $appwrite.config.databaseId,
