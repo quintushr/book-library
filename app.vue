@@ -5,6 +5,23 @@
         📚 Book Scanner
       </h1>
       
+      <!-- Message d'erreur si Appwrite n'est pas configuré -->
+      <div v-if="!isAppwriteConfigured" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-8">
+        <div class="flex items-center">
+          <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <p><strong>Configuration manquante :</strong> Les variables d'environnement Appwrite ne sont pas définies.</p>
+        </div>
+        <p class="mt-2 text-sm">
+          Assurez-vous d'avoir défini les variables d'environnement suivantes :
+          <code class="bg-red-100 px-1 py-0.5 rounded">NUXT_PUBLIC_APPWRITE_ENDPOINT</code>,
+          <code class="bg-red-100 px-1 py-0.5 rounded">NUXT_PUBLIC_APPWRITE_PROJECT_ID</code>,
+          <code class="bg-red-100 px-1 py-0.5 rounded">NUXT_PUBLIC_APPWRITE_DATABASE_ID</code> et
+          <code class="bg-red-100 px-1 py-0.5 rounded">NUXT_PUBLIC_APPWRITE_COLLECTION_ID</code>
+        </p>
+      </div>
+      
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <!-- Scanner Section -->
         <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
@@ -93,7 +110,7 @@
             <button
               @click="addToLibrary"
               class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
-              :disabled="saving"
+              :disabled="saving || !isAppwriteConfigured"
             >
               <svg
                 v-if="!saving"
@@ -140,6 +157,14 @@
           <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
         </div>
         
+        <div v-else-if="!isAppwriteConfigured" class="text-center py-12 bg-white rounded-2xl shadow-lg">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">Configuration requise</h3>
+          <p class="mt-1 text-sm text-gray-500">Veuillez configurer les variables d'environnement Appwrite pour accéder à votre bibliothèque.</p>
+        </div>
+        
         <div v-else-if="library.length === 0" class="text-center py-12 bg-white rounded-2xl shadow-lg">
           <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
@@ -173,8 +198,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-const { $appwrite } = useNuxtApp()
+import { ref, onMounted, computed } from 'vue'
+import { ID } from 'appwrite'
 
 const loading = ref(false)
 const saving = ref(false)
@@ -183,15 +208,48 @@ const error = ref(null)
 const book = ref(null)
 const library = ref([])
 
+// Récupérer la configuration
+const config = useRuntimeConfig().public
+
+// Vérifier si Appwrite est configuré
+const isAppwriteConfigured = computed(() => {
+  return Boolean(
+    config.appwriteProjectId && 
+    config.appwriteDatabaseId && 
+    config.appwriteCollectionId
+  )
+})
+
+// Utiliser le plugin Appwrite
+const { $appwrite } = useNuxtApp()
+
+// Initialiser la bibliothèque au montage du composant (côté client uniquement)
+onMounted(() => {
+  // Charger la bibliothèque au démarrage
+  fetchLibrary()
+})
+
 async function fetchLibrary() {
   try {
-    console.log("ici")
     loadingLibrary.value = true
-    const response = await $appwrite.databases.listDocuments(
-      $appwrite.config.databaseId,
-      $appwrite.config.collectionId
-    )
-    library.value = response.documents
+    
+    // Vérifier si Appwrite est configuré
+    if (!isAppwriteConfigured.value || !$appwrite) {
+      console.log('Appwrite not fully configured yet')
+      loadingLibrary.value = false
+      return
+    }
+    
+    try {
+      // Vérifier si nous sommes côté client
+      if (process.client) {
+        const books = await $appwrite.getBooks()
+        library.value = books
+      }
+    } catch (err) {
+      console.error('Database error:', err)
+      library.value = []
+    }
   } catch (err) {
     console.error('Error fetching library:', err)
   } finally {
@@ -204,15 +262,26 @@ async function addToLibrary() {
 
   try {
     saving.value = true
-    await $appwrite.databases.createDocument(
-      $appwrite.config.databaseId,
-      $appwrite.config.collectionId,
-      'unique()',
-      book.value
-    )
-    await fetchLibrary()
+    
+    // Vérifier si Appwrite est configuré
+    if (!isAppwriteConfigured.value || !$appwrite) {
+      error.value = 'Appwrite configuration is incomplete'
+      return
+    }
+    
+    try {
+      // Vérifier si nous sommes côté client
+      if (process.client) {
+        await $appwrite.addBook(book.value)
+        await fetchLibrary()
+      }
+    } catch (err) {
+      console.error('Database error:', err)
+      error.value = 'Failed to add book to library: ' + err.message
+    }
   } catch (err) {
     console.error('Error adding book to library:', err)
+    error.value = 'Failed to add book to library'
   } finally {
     saving.value = false
   }
@@ -254,10 +323,6 @@ function onDecode(result) {
 function onLoaded() {
   console.log('Scanner is ready')
 }
-
-onMounted(() => {
-  fetchLibrary()
-})
 </script>
 
 <style>

@@ -1,119 +1,130 @@
 # 📚 Book Scanner
 
-A modern, responsive web application for scanning book barcodes, retrieving book information, and building your personal library.
+Une application web moderne et responsive pour scanner les codes-barres de livres, récupérer les informations des livres et constituer votre bibliothèque personnelle.
 
-![Book Scanner App](https://i.imgur.com/placeholder.jpg)
+## ✨ Fonctionnalités
 
-## ✨ Features
-
-- **Barcode Scanning**: Scan book barcodes using your device's camera
-- **Book Information**: Retrieve detailed book information from Google Books API
-- **Personal Library**: Save books to your personal library
-- **Responsive Design**: Works on desktop, tablet, and mobile devices
-- **Modern UI**: Clean, minimalist interface with Tailwind CSS
+- **Scan de codes-barres** : Scannez les codes-barres des livres avec la caméra de votre appareil
+- **Informations sur les livres** : Récupérez des informations détaillées via l'API Google Books
+- **Bibliothèque personnelle** : Enregistrez les livres dans votre bibliothèque personnelle
+- **Design responsive** : Fonctionne sur ordinateur, tablette et mobile
+- **Interface moderne** : Interface propre et minimaliste avec Tailwind CSS
 
 ## 🛠️ Technologies
 
-- **[Nuxt.js 3](https://nuxt.com/)**: Vue.js framework for building modern web applications
-- **[Tailwind CSS](https://tailwindcss.com/)**: Utility-first CSS framework
-- **[Vue Barcode Reader](https://www.npmjs.com/package/vue-barcode-reader)**: Barcode scanning library
-- **[Appwrite](https://appwrite.io/)**: Backend as a Service for authentication and database
-- **[Google Books API](https://developers.google.com/books)**: Book information retrieval
+- **[Nuxt.js 3](https://nuxt.com/)** : Framework Vue.js pour construire des applications web modernes
+- **[Tailwind CSS](https://tailwindcss.com/)** : Framework CSS utilitaire
+- **[Vue Barcode Reader](https://www.npmjs.com/package/vue-barcode-reader)** : Bibliothèque de scan de codes-barres
+- **[Appwrite](https://appwrite.io/)** : Backend as a Service pour l'authentification et la base de données
+- **[nuxt-appwrite](https://github.com/appwrite/sdk-for-nuxt)** : Module Nuxt officiel pour Appwrite
+- **[Google Books API](https://developers.google.com/books)** : Récupération d'informations sur les livres
 
-## 🚀 Getting Started
+## 🚀 Mise en route
 
-### Prerequisites
+### Prérequis
 
-- Node.js (v16 or later)
-- npm or yarn
-- Appwrite account
+- Node.js (v16 ou ultérieur)
+- npm ou yarn
+- Compte Appwrite
 
-### Setup Appwrite
+### Configuration d'Appwrite
 
-1. Create an Appwrite project
-2. Create a database
-3. Create a collection with the following attributes:
+1. Créez un projet Appwrite
+   - Allez sur [cloud.appwrite.io](https://cloud.appwrite.io)
+   - Créez un compte ou connectez-vous
+   - Créez un nouveau projet
+
+2. Créez une base de données
+   - Dans votre projet, allez dans "Databases"
+   - Créez une nouvelle base de données (notez l'ID de la base de données)
+
+3. Créez une collection avec les attributs suivants :
    - `title` (string)
    - `authors` (string[])
    - `description` (string)
    - `publishedDate` (string)
    - `thumbnail` (string)
    - `isbn` (string)
-4. Set appropriate read/write permissions for your collection
 
-### Environment Variables
+4. Configurez les permissions de lecture/écriture pour votre collection
+   - Allez dans l'onglet "Settings" de votre collection
+   - Configurez les permissions appropriées (par exemple, permettre la lecture et l'écriture pour tous)
 
-Create a `.env` file in the root directory with the following variables:
+### Variables d'environnement
+
+Créez un fichier `.env` à la racine du projet avec les variables suivantes :
 
 ```
-NUXT_PUBLIC_APPWRITE_PROJECT_ID=your-project-id
-NUXT_PUBLIC_APPWRITE_DATABASE_ID=your-database-id
-NUXT_PUBLIC_APPWRITE_COLLECTION_ID=your-collection-id
+NUXT_PUBLIC_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+NUXT_PUBLIC_APPWRITE_PROJECT_ID=votre-project-id
+NUXT_PUBLIC_APPWRITE_DATABASE_ID=votre-database-id
+NUXT_PUBLIC_APPWRITE_COLLECTION_ID=votre-collection-id
 ```
 
 ### Installation
 
 ```bash
-# Install dependencies
+# Installer les dépendances
 npm install
 
-# Start development server
+# Démarrer le serveur de développement
 npm run dev
 
-# Build for production
+# Construire pour la production
 npm run build
 
-# Preview production build
+# Prévisualiser la version de production
 npm run preview
 ```
 
-## 📱 Usage
+## 📱 Utilisation
 
-1. Allow camera access when prompted
-2. Position a book's barcode within the camera view
-3. Once scanned, book information will be displayed
-4. Click "Add to Library" to save the book to your personal collection
-5. View all your saved books in the "My Library" section
+1. Autorisez l'accès à la caméra lorsque vous y êtes invité
+2. Positionnez le code-barres d'un livre dans le champ de vision de la caméra
+3. Une fois scanné, les informations du livre s'afficheront
+4. Cliquez sur "Ajouter à la bibliothèque" pour enregistrer le livre dans votre collection
+5. Consultez tous vos livres enregistrés dans la section "Ma bibliothèque"
 
-## 🚀 Deployment
+## 🚀 Déploiement
 
-### Deploying with Nixpacks
+### Déploiement avec Nixpacks
 
-This project is configured to be deployed using Nixpacks, which automatically creates optimized Docker images.
+Ce projet est configuré pour être déployé avec Nixpacks, qui crée automatiquement des images Docker optimisées.
 
-1. Make sure you have Nixpacks installed:
+1. Assurez-vous d'avoir Nixpacks installé :
    ```bash
    curl -sSL https://nixpacks.com/install.sh | bash
    ```
 
-2. Build your application with Nixpacks:
+2. Construisez votre application avec Nixpacks :
    ```bash
    nixpacks build . --name book-scanner
    ```
 
-3. Run the built image:
+3. Exécutez l'image construite :
    ```bash
    docker run -p 3000:3000 book-scanner
    ```
 
-### Environment Variables for Production
+### Variables d'environnement pour la production
 
-Make sure to set the following environment variables in your production environment:
+Assurez-vous de définir les variables d'environnement suivantes dans votre environnement de production :
 
 ```
 NODE_ENV=production
-NUXT_PUBLIC_APPWRITE_PROJECT_ID=your-project-id
-NUXT_PUBLIC_APPWRITE_DATABASE_ID=your-database-id
-NUXT_PUBLIC_APPWRITE_COLLECTION_ID=your-collection-id
+NUXT_PUBLIC_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+NUXT_PUBLIC_APPWRITE_PROJECT_ID=votre-project-id
+NUXT_PUBLIC_APPWRITE_DATABASE_ID=votre-database-id
+NUXT_PUBLIC_APPWRITE_COLLECTION_ID=votre-collection-id
 ```
 
-## 📝 License
+## 📝 Licence
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+Ce projet est sous licence MIT - voir le fichier LICENSE pour plus de détails.
 
-## 🙏 Acknowledgements
+## 🙏 Remerciements
 
-- [Google Books API](https://developers.google.com/books) for providing book data
-- [Appwrite](https://appwrite.io/) for backend services
-- [Nuxt.js](https://nuxt.com/) for the amazing framework
-- [Tailwind CSS](https://tailwindcss.com/) for the styling utilities
+- [Google Books API](https://developers.google.com/books) pour les données sur les livres
+- [Appwrite](https://appwrite.io/) pour les services backend
+- [Nuxt.js](https://nuxt.com/) pour le framework
+- [Tailwind CSS](https://tailwindcss.com/) pour les utilitaires de style
