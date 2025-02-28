@@ -34,7 +34,7 @@ export default defineNuxtConfig({
   // Optimisation pour les imports
   vite: {
     optimizeDeps: {
-      include: ['appwrite']
+      include: ['appwrite', 'vue-barcode-reader']
     },
     // Résoudre les problèmes d'importation SSR
     ssr: {
@@ -42,5 +42,9 @@ export default defineNuxtConfig({
     },
     // Forcer le rechargement des dépendances
     cacheDir: '.nuxt/.vite'
+  },
+  // Configuration pour les plugins client-only
+  build: {
+    transpile: ['vue-barcode-reader']
   }
 })
