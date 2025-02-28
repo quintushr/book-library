@@ -35,10 +35,21 @@
           </h2>
           <div class="aspect-video bg-gray-50 rounded-xl overflow-hidden ring-1 ring-gray-200">
             <ClientOnly>
-              <StreamBarcodeReader
-                @decode="onDecode"
-                @loaded="onLoaded"
-              ></StreamBarcodeReader>
+              <div v-if="cameraActive">
+                <StreamBarcodeReader
+                  @decode="onDecode"
+                  @loaded="onLoaded"
+                  :constraints="{ video: { facingMode: 'environment' } }"
+                ></StreamBarcodeReader>
+              </div>
+              <div v-else class="flex items-center justify-center h-64">
+                <button 
+                  @click="activateCamera" 
+                  class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  Activer la caméra
+                </button>
+              </div>
               <template #fallback>
                 <div class="flex items-center justify-center h-64 text-gray-400">
                   <div class="text-center">
@@ -52,12 +63,24 @@
               </template>
             </ClientOnly>
           </div>
-          <p class="text-sm text-gray-500 mt-3 flex items-center justify-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Position the barcode within the camera view
-          </p>
+          <div class="mt-3 flex justify-between items-center">
+            <p class="text-sm text-gray-500 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Position the barcode within the camera view
+            </p>
+            <button 
+              v-if="cameraActive" 
+              @click="testScan" 
+              class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 py-1 px-3 rounded"
+            >
+              Test (ISBN: 9780141036144)
+            </button>
+          </div>
+          <div v-if="scanStatus" class="mt-2 text-sm" :class="scanStatus.success ? 'text-green-600' : 'text-red-600'">
+            {{ scanStatus.message }}
+          </div>
         </div>
 
         <!-- Book Info Section -->
@@ -207,6 +230,8 @@ const loadingLibrary = ref(true)
 const error = ref(null)
 const book = ref(null)
 const library = ref([])
+const cameraActive = ref(false)
+const scanStatus = ref(null)
 
 // Récupérer la configuration
 const config = useRuntimeConfig().public
@@ -228,6 +253,10 @@ onMounted(() => {
   // Charger la bibliothèque au démarrage
   fetchLibrary()
 })
+
+function activateCamera() {
+  cameraActive.value = true
+}
 
 async function fetchLibrary() {
   try {
@@ -291,6 +320,7 @@ async function fetchBookInfo(isbn) {
   try {
     loading.value = true
     error.value = null
+    scanStatus.value = { success: true, message: `Code-barres détecté: ${isbn}` }
     
     const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`)
     const data = await response.json()
@@ -307,9 +337,11 @@ async function fetchBookInfo(isbn) {
       }
     } else {
       error.value = 'Book not found'
+      scanStatus.value = { success: false, message: `Livre non trouvé pour l'ISBN: ${isbn}` }
     }
   } catch (err) {
     error.value = 'Error fetching book information'
+    scanStatus.value = { success: false, message: `Erreur lors de la recherche: ${err.message}` }
     console.error(err)
   } finally {
     loading.value = false
@@ -317,11 +349,21 @@ async function fetchBookInfo(isbn) {
 }
 
 function onDecode(result) {
+  console.log('Barcode detected:', result)
   fetchBookInfo(result)
 }
 
 function onLoaded() {
   console.log('Scanner is ready')
+  scanStatus.value = { success: true, message: 'Scanner prêt à l\'utilisation' }
+}
+
+// Fonction de test pour simuler un scan
+function testScan() {
+  // ISBN de "1984" de George Orwell
+  const testIsbn = '9780141036144'
+  console.log('Test scan with ISBN:', testIsbn)
+  fetchBookInfo(testIsbn)
 }
 </script>
 
