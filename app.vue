@@ -33,14 +33,26 @@
             </span>
             Scan Book Barcode
           </h2>
-          <div class="aspect-video bg-gray-50 rounded-xl overflow-hidden ring-1 ring-gray-200">
+          <div class="aspect-video bg-gray-50 rounded-xl overflow-hidden ring-1 ring-gray-200 flex items-center justify-center">
             <ClientOnly>
-              <div v-if="cameraActive">
-                <StreamBarcodeReader
-                  @decode="onDecode"
-                  @loaded="onLoaded"
-                  :constraints="{ video: { facingMode: 'environment' } }"
-                ></StreamBarcodeReader>
+              <div v-if="cameraActive" class="w-full h-full flex items-center justify-center">
+                <div class="scanner-container relative w-full h-full flex items-center justify-center">
+                  <StreamBarcodeReader
+                    @decode="onDecode"
+                    @loaded="onLoaded"
+                    :constraints="{ 
+                      video: { 
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                      } 
+                    }"
+                  ></StreamBarcodeReader>
+                  <!-- Overlay pour indiquer la zone de scan -->
+                  <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div class="border-2 border-indigo-500 w-3/4 h-1/2 rounded-lg"></div>
+                  </div>
+                </div>
               </div>
               <div v-else class="flex items-center justify-center h-64">
                 <button 
@@ -370,5 +382,37 @@ function testScan() {
 <style>
 .decode-result {
   word-break: break-all;
+}
+
+/* Styles pour le scanner de code-barres */
+.scanner-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.scanner-container video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Animation pour la zone de scan */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+  }
+}
+
+.scanner-container .border-indigo-500 {
+  animation: pulse 2s infinite;
 }
 </style>
